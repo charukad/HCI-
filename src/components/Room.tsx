@@ -186,25 +186,17 @@ export default function Room({ width, length, height, wallColor, floorColor, wal
   // Generate 3D walls from 2D wall definitions
   const wallMeshes = useMemo(() => {
     if (room.walls.length === 0) {
-      // If no custom walls defined, create a rectangular room
+      // If no custom walls defined, create a room with only back and right walls
       return (
         <>
+          {/* Back wall (with windows) */}
           <mesh position={[0, height / 2, -halfLength]} receiveShadow>
             <boxGeometry args={[width, height, 0.1]} />
             <primitive object={wallMaterial} attach="material" />
           </mesh>
 
-          <mesh position={[0, height / 2, halfLength]} receiveShadow>
-            <boxGeometry args={[width, height, 0.1]} />
-            <primitive object={wallMaterial} attach="material" />
-          </mesh>
-
+          {/* Right wall (with door) */}
           <mesh position={[halfWidth, height / 2, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
-            <boxGeometry args={[length, height, 0.1]} />
-            <primitive object={wallMaterial} attach="material" />
-          </mesh>
-
-          <mesh position={[-halfWidth, height / 2, 0]} rotation={[0, -Math.PI / 2, 0]} receiveShadow>
             <boxGeometry args={[length, height, 0.1]} />
             <primitive object={wallMaterial} attach="material" />
           </mesh>
@@ -279,4 +271,3 @@ export default function Room({ width, length, height, wallColor, floorColor, wal
     </group>
   )
 }
-

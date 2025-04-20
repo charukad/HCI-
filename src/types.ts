@@ -72,8 +72,8 @@ export const initialRoom: Room = {
   width: 10,
   length: 10,
   height: 3,
-  wallColor: "#FFFFFF",
-  floorColor: "#F0F0F0",
+  wallColor: "#F5F5F5", // Lighter wall color similar to reference
+  floorColor: "#E0E0E0", // Light gray floor like in reference
   wallTexture: {
     url: null,
     repeat: [4, 2],
@@ -86,29 +86,40 @@ export const initialRoom: Room = {
 }
 
 export const initialFurniture: FurnitureItem[] = [
+  // First sofa (similar to chair type)
   {
     id: "1",
     type: FurnitureType.CHAIR,
-    position: [-2, 0, 0],
-    rotation: [0, 0, 0],
-    scale: [1, 1, 1],
-    color: "#A0522D",
+    position: [-2.5, 0, 2.5],
+    rotation: [0, Math.PI / 2, 0], // Facing center
+    scale: [1.5, 1, 1.5],
+    color: "#C2813B", // Brown leather like in reference
   },
+  // Second sofa (similar to chair type)
   {
     id: "2",
+    type: FurnitureType.CHAIR,
+    position: [2, 0, 2],
+    rotation: [0, Math.PI, 0], // Facing center
+    scale: [1.5, 1, 1.5],
+    color: "#6B8E23", // Olive green like in reference
+  },
+  // Coffee table (using dining table type)
+  {
+    id: "3",
     type: FurnitureType.DINING_TABLE,
     position: [0, 0, 0],
     rotation: [0, 0, 0],
-    scale: [1, 1, 1],
-    color: "#8B4513",
+    scale: [1, 0.5, 1],
+    color: "#F0D9B5", // Light wood color
   },
+  // TV cabinet (using side table type)
   {
-    id: "3",
+    id: "4",
     type: FurnitureType.SIDE_TABLE,
-    position: [2, 0, 0],
+    position: [0, 0, -3],
     rotation: [0, 0, 0],
-    scale: [1, 1, 1],
-    color: "#D2691E",
+    scale: [1.2, 1.2, 1.2],
+    color: "#E0C8A0", // Light wood color for TV cabinet
   },
 ]
-
