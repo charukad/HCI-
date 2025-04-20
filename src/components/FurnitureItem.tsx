@@ -9,6 +9,10 @@ import CoffeeTable from "./CoffeeTable"
 import TvStand from "./TvStand"
 import Plant from "./Plant"
 import Lamp from "./Lamp"
+import Bookshelf from "./Bookshelf"
+import Rug from "./Rug"
+import WallArt from "./WallArt"
+import Bed from "./Bed"
 import { FurnitureType } from "../types"
 import { useFurniture } from "../context/FurnitureContext"
 
@@ -20,6 +24,16 @@ const FURNITURE_DIMENSIONS = {
   [FurnitureType.TV_STAND]: { width: 2.0, depth: 0.5 },
   [FurnitureType.PLANT]: { width: 0.4, depth: 0.4 },
   [FurnitureType.LAMP]: { width: 0.5, depth: 0.5 },
+  [FurnitureType.BOOKSHELF]: { width: 1.2, depth: 0.4 },
+  [FurnitureType.RUG]: { width: 3.0, depth: 2.0 },
+  [FurnitureType.WALL_ART]: { width: 1.2, depth: 0.1 },
+  [FurnitureType.DINING_TABLE]: { width: 1.8, depth: 1.8 },
+  [FurnitureType.DINING_CHAIR]: { width: 0.8, depth: 0.8 },
+  [FurnitureType.DESK]: { width: 1.6, depth: 0.8 },
+  [FurnitureType.OFFICE_CHAIR]: { width: 0.7, depth: 0.7 },
+  [FurnitureType.BED]: { width: 2.0, depth: 3.0 },
+  [FurnitureType.NIGHTSTAND]: { width: 0.5, depth: 0.5 },
+  [FurnitureType.PENDANT_LIGHT]: { width: 0.4, depth: 0.4 }
 }
 
 interface FurnitureItemProps {
@@ -32,6 +46,11 @@ interface FurnitureItemProps {
   isSelected: boolean
   onSelect: () => void
   onDrag: (position: [number, number, number]) => void
+  materialType?: string
+  texture?: string
+  finish?: string
+  lightIntensity?: number
+  lightColor?: string
 }
 
 export default function FurnitureItem({
@@ -44,6 +63,11 @@ export default function FurnitureItem({
   isSelected,
   onSelect,
   onDrag,
+  materialType,
+  texture,
+  finish,
+  lightIntensity = 0.5,
+  lightColor = "#FFF5E0"
 }: FurnitureItemProps) {
   const ref = useRef<THREE.Group>(null)
   const { camera, raycaster, pointer, gl } = useThree()
@@ -165,7 +189,15 @@ export default function FurnitureItem({
       case FurnitureType.PLANT:
         return <Plant color={color} />
       case FurnitureType.LAMP:
-        return <Lamp color={color} />
+        return <Lamp color={color} lightIntensity={lightIntensity} lightColor={lightColor} />
+      case FurnitureType.BOOKSHELF:
+        return <Bookshelf color={color} />
+      case FurnitureType.RUG:
+        return <Rug color={color} pattern={texture as any} />
+      case FurnitureType.WALL_ART:
+        return <WallArt color={color} style={texture as any} />
+      case FurnitureType.BED:
+        return <Bed color={color} />
       default:
         return <mesh />
     }
