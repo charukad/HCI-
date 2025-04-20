@@ -3,17 +3,23 @@
 import { useRef, useState, useEffect } from "react"
 import { useFrame, useThree } from "@react-three/fiber"
 import * as THREE from "three"
-import Chair from "./Chair"
-import DiningTable from "./DiningTable"
-import SideTable from "./SideTable"
+import Sofa from "./Sofa"
+import Armchair from "./Armchair"
+import CoffeeTable from "./CoffeeTable"
+import TvStand from "./TvStand"
+import Plant from "./Plant"
+import Lamp from "./Lamp"
 import { FurnitureType } from "../types"
 import { useFurniture } from "../context/FurnitureContext"
 
 // Define approximate furniture dimensions for boundary calculations
 const FURNITURE_DIMENSIONS = {
-  [FurnitureType.CHAIR]: { width: 0.8, depth: 0.8 },
-  [FurnitureType.DINING_TABLE]: { width: 2.0, depth: 1.2 },
-  [FurnitureType.SIDE_TABLE]: { width: 1.0, depth: 1.0 },
+  [FurnitureType.SOFA]: { width: 2.2, depth: 1.0 },
+  [FurnitureType.ARMCHAIR]: { width: 1.1, depth: 1.0 },
+  [FurnitureType.COFFEE_TABLE]: { width: 1.2, depth: 0.7 },
+  [FurnitureType.TV_STAND]: { width: 2.0, depth: 0.5 },
+  [FurnitureType.PLANT]: { width: 0.4, depth: 0.4 },
+  [FurnitureType.LAMP]: { width: 0.5, depth: 0.5 },
 }
 
 interface FurnitureItemProps {
@@ -148,12 +154,18 @@ export default function FurnitureItem({
   // Render appropriate furniture model
   const renderFurniture = () => {
     switch (type) {
-      case FurnitureType.CHAIR:
-        return <Chair color={color} />
-      case FurnitureType.DINING_TABLE:
-        return <DiningTable color={color} />
-      case FurnitureType.SIDE_TABLE:
-        return <SideTable color={color} />
+      case FurnitureType.SOFA:
+        return <Sofa color={color} />
+      case FurnitureType.ARMCHAIR:
+        return <Armchair color={color} />
+      case FurnitureType.COFFEE_TABLE:
+        return <CoffeeTable color={color} />
+      case FurnitureType.TV_STAND:
+        return <TvStand color={color} />
+      case FurnitureType.PLANT:
+        return <Plant color={color} />
+      case FurnitureType.LAMP:
+        return <Lamp color={color} />
       default:
         return <mesh />
     }
@@ -187,4 +199,3 @@ export default function FurnitureItem({
     </group>
   )
 }
-

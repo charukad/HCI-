@@ -10,9 +10,12 @@ export enum WorkflowStep {
 }
 
 export enum FurnitureType {
-  CHAIR = "chair",
-  DINING_TABLE = "dining_table",
-  SIDE_TABLE = "side_table",
+  SOFA = "sofa",
+  ARMCHAIR = "armchair",
+  COFFEE_TABLE = "coffee_table",
+  TV_STAND = "tv_stand",
+  PLANT = "plant",
+  LAMP = "lamp"
 }
 
 export interface Point {
@@ -72,8 +75,8 @@ export const initialRoom: Room = {
   width: 10,
   length: 10,
   height: 3,
-  wallColor: "#F5F5F5", // Lighter wall color similar to reference
-  floorColor: "#E0E0E0", // Light gray floor like in reference
+  wallColor: "#FFFFFF",
+  floorColor: "#CCCCCC",
   wallTexture: {
     url: null,
     repeat: [4, 2],
@@ -85,41 +88,84 @@ export const initialRoom: Room = {
   walls: [], // Empty for now, will be populated in 2D design
 }
 
+// Initial furniture that matches the image
 export const initialFurniture: FurnitureItem[] = [
-  // First sofa (similar to chair type)
+  // Two sofas
   {
     id: "1",
-    type: FurnitureType.CHAIR,
-    position: [-2.5, 0, 2.5],
-    rotation: [0, Math.PI / 2, 0], // Facing center
-    scale: [1.5, 1, 1.5],
-    color: "#C2813B", // Brown leather like in reference
+    type: FurnitureType.SOFA,
+    position: [-2, 0, 1],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    color: "#C69C6D",  // Tan/brown color
   },
-  // Second sofa (similar to chair type)
   {
     id: "2",
-    type: FurnitureType.CHAIR,
-    position: [2, 0, 2],
-    rotation: [0, Math.PI, 0], // Facing center
-    scale: [1.5, 1, 1.5],
-    color: "#6B8E23", // Olive green like in reference
+    type: FurnitureType.SOFA,
+    position: [2, 0, 1],
+    rotation: [0, Math.PI, 0],
+    scale: [1, 1, 1],
+    color: "#C69C6D",  // Tan/brown color
   },
-  // Coffee table (using dining table type)
+  // Green armchair
   {
     id: "3",
-    type: FurnitureType.DINING_TABLE,
-    position: [0, 0, 0],
-    rotation: [0, 0, 0],
-    scale: [1, 0.5, 1],
-    color: "#F0D9B5", // Light wood color
+    type: FurnitureType.ARMCHAIR,
+    position: [4, 0, -2],
+    rotation: [0, -Math.PI/2, 0],
+    scale: [1, 1, 1],
+    color: "#5B8C5A",  // Olive green
   },
-  // TV cabinet (using side table type)
+  // Coffee tables
   {
     id: "4",
-    type: FurnitureType.SIDE_TABLE,
-    position: [0, 0, -3],
+    type: FurnitureType.COFFEE_TABLE,
+    position: [0, 0, 0],
     rotation: [0, 0, 0],
-    scale: [1.2, 1.2, 1.2],
-    color: "#E0C8A0", // Light wood color for TV cabinet
+    scale: [1, 1, 1],
+    color: "#A0825B",  // Light wood
   },
+  {
+    id: "5",
+    type: FurnitureType.COFFEE_TABLE,
+    position: [2, 0, -1],
+    rotation: [0, 0, 0],
+    scale: [0.8, 0.8, 0.8],
+    color: "#A0825B",  // Light wood
+  },
+  // TV Stand
+  {
+    id: "6",
+    type: FurnitureType.TV_STAND,
+    position: [0, 0, -4],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    color: "#333333",  // Dark gray/black
+  },
+  // Plants for decoration
+  {
+    id: "7",
+    type: FurnitureType.PLANT,
+    position: [4.5, 0, 3],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    color: "#2E7D32",  // Green
+  },
+  {
+    id: "8",
+    type: FurnitureType.PLANT,
+    position: [-3, 0, -4],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    color: "#2E7D32",  // Green
+  },
+  // Floor lamp
+  {
+    id: "9",
+    type: FurnitureType.LAMP,
+    position: [-4, 0, -2],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    color: "#212121",  // Black
+  }
 ]

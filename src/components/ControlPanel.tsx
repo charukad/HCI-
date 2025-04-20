@@ -30,6 +30,7 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
   const [designName, setDesignName] = useState("")
   const [showSavedDesigns, setShowSavedDesigns] = useState(false)
   const [showSnapshots, setShowSnapshots] = useState(false)
+  const [activeTab, setActiveTab] = useState("furniture") // Default tab
 
   // Refs for file inputs
   const wallTextureInputRef = useRef<HTMLInputElement>(null)
@@ -162,409 +163,826 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
     })
   }
 
-  return (
-    <div
-      style={{
-        width: "100%",
-        height: "100vh",
-        backgroundColor: "#fff",
-        boxShadow: "-5px 0 15px rgba(0,0,0,0.1)",
-        padding: "20px",
-        display: "flex",
-        flexDirection: "column",
-        overflow: "auto",
-        position: "absolute",
-        right: 0,
-        top: 0,
-      }}
-    >
-      <h2 style={{ margin: "0 0 20px", color: "#333" }}>Furniture Visualizer</h2>
-
-      {/* View controls */}
-      <div style={{ marginBottom: "20px" }}>
-        <h3 style={{ fontSize: "18px", marginBottom: "10px" }}>View Mode</h3>
-        <div style={{ display: "flex", gap: "10px" }}>
-          {Object.values(ViewMode).map((mode) => (
-            <button
-              key={mode}
-              onClick={() => onChangeViewMode(mode)}
-              style={{
-                padding: "8px 16px",
-                backgroundColor: viewMode === mode ? "#4285F4" : "#f0f0f0",
-                color: viewMode === mode ? "white" : "black",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                flex: 1,
-              }}
-            >
-              {mode}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Room settings */}
-      <div style={{ marginBottom: "20px" }}>
-        <h3 style={{ fontSize: "18px", marginBottom: "10px" }}>Room Settings</h3>
-
-        {/* Room dimensions */}
-        <div style={{ marginBottom: "15px" }}>
-          <h4 style={{ fontSize: "14px", marginBottom: "8px" }}>Dimensions</h4>
-          <div style={{ display: "grid", gap: "8px", gridTemplateColumns: "1fr 1fr 1fr" }}>
-            <div>
-              <label style={{ display: "block", fontSize: "12px", marginBottom: "4px" }}>Width (m)</label>
-              <input
-                type="number"
-                min="1"
-                max="20"
-                value={room.width}
-                onChange={(e) => setRoom({ ...room, width: Number(e.target.value) })}
-                style={{ width: "100%", padding: "6px", borderRadius: "4px", border: "1px solid #ddd" }}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: "12px", marginBottom: "4px" }}>Length (m)</label>
-              <input
-                type="number"
-                min="1"
-                max="20"
-                value={room.length}
-                onChange={(e) => setRoom({ ...room, length: Number(e.target.value) })}
-                style={{ width: "100%", padding: "6px", borderRadius: "4px", border: "1px solid #ddd" }}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: "12px", marginBottom: "4px" }}>Height (m)</label>
-              <input
-                type="number"
-                min="1"
-                max="5"
-                value={room.height}
-                onChange={(e) => setRoom({ ...room, height: Number(e.target.value) })}
-                style={{ width: "100%", padding: "6px", borderRadius: "4px", border: "1px solid #ddd" }}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Wall settings */}
-        <div style={{ marginBottom: "15px" }}>
-          <h4 style={{ fontSize: "14px", marginBottom: "8px" }}>Wall</h4>
-
-          {/* Wall color */}
-          <div style={{ marginBottom: "10px" }}>
-            <label style={{ display: "block", fontSize: "12px", marginBottom: "4px" }}>Color</label>
-            <input
-              type="color"
-              value={room.wallColor}
-              onChange={(e) => setRoom({ ...room, wallColor: e.target.value })}
-              style={{ width: "100%", height: "32px" }}
-            />
-          </div>
-
-          {/* Wall texture */}
-          <div style={{ marginBottom: "10px" }}>
-            <label style={{ display: "block", fontSize: "12px", marginBottom: "4px" }}>Texture</label>
-            <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
-              <button onClick={() => wallTextureInputRef.current?.click()} style={{ ...buttonStyle, flex: 1 }}>
-                Upload Texture
-              </button>
-              <button
-                onClick={() => handleClearTexture("wall")}
-                style={{ ...buttonStyle, backgroundColor: "#f44336" }}
-                disabled={!room.wallTexture.url}
-              >
-                Clear
-              </button>
-              <input
-                type="file"
-                ref={wallTextureInputRef}
-                onChange={(e) => handleTextureUpload(e, "wall")}
-                accept="image/*"
-                style={{ display: "none" }}
-              />
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "furniture":
+        return (
+          <>
+            {/* Add furniture */}
+            <div className="tab-section">
+              <h3>Add Furniture</h3>
+              <div className="button-grid">
+                <button onClick={() => handleAddFurniture(FurnitureType.SOFA)} className="furniture-button">
+                  <div className="icon">🛋️</div>
+                  <span>Sofa</span>
+                </button>
+                <button onClick={() => handleAddFurniture(FurnitureType.ARMCHAIR)} className="furniture-button">
+                  <div className="icon">🪑</div>
+                  <span>Armchair</span>
+                </button>
+                <button onClick={() => handleAddFurniture(FurnitureType.COFFEE_TABLE)} className="furniture-button">
+                  <div className="icon">🪵</div>
+                  <span>Coffee Table</span>
+                </button>
+                <button onClick={() => handleAddFurniture(FurnitureType.TV_STAND)} className="furniture-button">
+                  <div className="icon">📺</div>
+                  <span>TV Stand</span>
+                </button>
+                <button onClick={() => handleAddFurniture(FurnitureType.PLANT)} className="furniture-button">
+                  <div className="icon">🪴</div>
+                  <span>Plant</span>
+                </button>
+                <button onClick={() => handleAddFurniture(FurnitureType.LAMP)} className="furniture-button">
+                  <div className="icon">💡</div>
+                  <span>Lamp</span>
+                </button>
+              </div>
             </div>
 
-            {room.wallTexture.url && (
-              <div>
-                <div style={{ marginBottom: "8px" }}>
-                  <img
-                    src={room.wallTexture.url || "/placeholder.svg"}
-                    alt="Wall texture preview"
-                    style={{ width: "100%", height: "60px", objectFit: "cover", borderRadius: "4px" }}
+            {/* Selected item controls */}
+            {selectedItem && (
+              <div className="tab-section">
+                <h3>Selected Item: {selectedItem.type}</h3>
+
+                {/* Color control */}
+                <div className="control-group">
+                  <label>Color</label>
+                  <input
+                    type="color"
+                    value={selectedItem.color}
+                    onChange={(e) => updateFurnitureColor(selectedItem.id, e.target.value)}
+                    className="color-picker"
                   />
                 </div>
 
-                {/* Texture repeat controls */}
-                <div style={{ display: "grid", gap: "8px", gridTemplateColumns: "1fr 1fr" }}>
-                  <div>
-                    <label style={{ display: "block", fontSize: "12px", marginBottom: "4px" }}>
-                      Repeat X: {room.wallTexture.repeat[0]}
-                    </label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="10"
-                      step="1"
-                      value={room.wallTexture.repeat[0]}
-                      onChange={(e) => handleTextureRepeatChange("wall", "x", Number(e.target.value))}
-                      style={{ width: "100%" }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", fontSize: "12px", marginBottom: "4px" }}>
-                      Repeat Y: {room.wallTexture.repeat[1]}
-                    </label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="10"
-                      step="1"
-                      value={room.wallTexture.repeat[1]}
-                      onChange={(e) => handleTextureRepeatChange("wall", "y", Number(e.target.value))}
-                      style={{ width: "100%" }}
-                    />
+                {/* Rotation control */}
+                <div className="control-group">
+                  <label>Rotation</label>
+                  <div className="button-row">
+                    <button onClick={() => handleRotateItem(-45)} className="control-button">
+                      -45°
+                    </button>
+                    <button onClick={() => handleRotateItem(-15)} className="control-button">
+                      -15°
+                    </button>
+                    <button onClick={() => handleRotateItem(15)} className="control-button">
+                      +15°
+                    </button>
+                    <button onClick={() => handleRotateItem(45)} className="control-button">
+                      +45°
+                    </button>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </div>
 
-        {/* Floor settings */}
-        <div style={{ marginBottom: "15px" }}>
-          <h4 style={{ fontSize: "14px", marginBottom: "8px" }}>Floor</h4>
-
-          {/* Floor color */}
-          <div style={{ marginBottom: "10px" }}>
-            <label style={{ display: "block", fontSize: "12px", marginBottom: "4px" }}>Color</label>
-            <input
-              type="color"
-              value={room.floorColor}
-              onChange={(e) => setRoom({ ...room, floorColor: e.target.value })}
-              style={{ width: "100%", height: "32px" }}
-            />
-          </div>
-
-          {/* Floor texture */}
-          <div style={{ marginBottom: "10px" }}>
-            <label style={{ display: "block", fontSize: "12px", marginBottom: "4px" }}>Texture</label>
-            <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
-              <button onClick={() => floorTextureInputRef.current?.click()} style={{ ...buttonStyle, flex: 1 }}>
-                Upload Texture
-              </button>
-              <button
-                onClick={() => handleClearTexture("floor")}
-                style={{ ...buttonStyle, backgroundColor: "#f44336" }}
-                disabled={!room.floorTexture.url}
-              >
-                Clear
-              </button>
-              <input
-                type="file"
-                ref={floorTextureInputRef}
-                onChange={(e) => handleTextureUpload(e, "floor")}
-                accept="image/*"
-                style={{ display: "none" }}
-              />
-            </div>
-
-            {room.floorTexture.url && (
-              <div>
-                <div style={{ marginBottom: "8px" }}>
-                  <img
-                    src={room.floorTexture.url || "/placeholder.svg"}
-                    alt="Floor texture preview"
-                    style={{ width: "100%", height: "60px", objectFit: "cover", borderRadius: "4px" }}
+                {/* Scale control */}
+                <div className="control-group">
+                  <label>Scale: {selectedItem.scale[0].toFixed(1)}x</label>
+                  <input
+                    type="range"
+                    min="0.5"
+                    max="2"
+                    step="0.1"
+                    value={selectedItem.scale[0]}
+                    onChange={(e) => handleUniformScale(Number.parseFloat(e.target.value))}
+                    className="slider"
                   />
                 </div>
 
-                {/* Texture repeat controls */}
-                <div style={{ display: "grid", gap: "8px", gridTemplateColumns: "1fr 1fr" }}>
-                  <div>
-                    <label style={{ display: "block", fontSize: "12px", marginBottom: "4px" }}>
-                      Repeat X: {room.floorTexture.repeat[0]}
-                    </label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="10"
-                      step="1"
-                      value={room.floorTexture.repeat[0]}
-                      onChange={(e) => handleTextureRepeatChange("floor", "x", Number(e.target.value))}
-                      style={{ width: "100%" }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", fontSize: "12px", marginBottom: "4px" }}>
-                      Repeat Y: {room.floorTexture.repeat[1]}
-                    </label>
-                    <input
-                      type="range"
-                      min="1"
-                      max="10"
-                      step="1"
-                      value={room.floorTexture.repeat[1]}
-                      onChange={(e) => handleTextureRepeatChange("floor", "y", Number(e.target.value))}
-                      style={{ width: "100%" }}
-                    />
-                  </div>
-                </div>
+                <button
+                  onClick={() => removeFurniture(selectedItem.id)}
+                  className="danger-button"
+                >
+                  Remove Item
+                </button>
               </div>
             )}
-          </div>
-        </div>
-      </div>
+          </>
+        )
 
-      {/* Add furniture */}
-      <div style={{ marginBottom: "20px" }}>
-        <h3 style={{ fontSize: "18px", marginBottom: "10px" }}>Add Furniture</h3>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-          <button onClick={() => handleAddFurniture(FurnitureType.CHAIR)} style={buttonStyle}>
-            Add Chair
-          </button>
-          <button onClick={() => handleAddFurniture(FurnitureType.DINING_TABLE)} style={buttonStyle}>
-            Add Dining Table
-          </button>
-          <button onClick={() => handleAddFurniture(FurnitureType.SIDE_TABLE)} style={buttonStyle}>
-            Add Side Table
-          </button>
-        </div>
-      </div>
-
-      {/* Selected item controls */}
-      {selectedItem && (
-        <div style={{ marginBottom: "20px" }}>
-          <h3 style={{ fontSize: "18px", marginBottom: "10px" }}>Selected Item</h3>
-
-          {/* Color control */}
-          <div style={{ marginBottom: "15px" }}>
-            <h4 style={{ fontSize: "14px", marginBottom: "8px" }}>Color</h4>
-            <input
-              type="color"
-              value={selectedItem.color}
-              onChange={(e) => updateFurnitureColor(selectedItem.id, e.target.value)}
-              style={{ width: "100%", height: "32px" }}
-            />
-          </div>
-
-          {/* Rotation control */}
-          <div style={{ marginBottom: "15px" }}>
-            <h4 style={{ fontSize: "14px", marginBottom: "8px" }}>Rotation</h4>
-            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              <button onClick={() => handleRotateItem(-45)} style={{ ...buttonStyle, flex: 1, padding: "6px" }}>
-                -45°
-              </button>
-              <button onClick={() => handleRotateItem(-15)} style={{ ...buttonStyle, flex: 1, padding: "6px" }}>
-                -15°
-              </button>
-              <button onClick={() => handleRotateItem(15)} style={{ ...buttonStyle, flex: 1, padding: "6px" }}>
-                +15°
-              </button>
-              <button onClick={() => handleRotateItem(45)} style={{ ...buttonStyle, flex: 1, padding: "6px" }}>
-                +45°
-              </button>
+      case "room":
+        return (
+          <>
+            {/* Room dimensions */}
+            <div className="tab-section">
+              <h3>Room Dimensions</h3>
+              <div className="control-grid">
+                <div className="control-group">
+                  <label>Width (m)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={room.width}
+                    onChange={(e) => setRoom({ ...room, width: Number(e.target.value) })}
+                    className="text-input"
+                  />
+                </div>
+                <div className="control-group">
+                  <label>Length (m)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={room.length}
+                    onChange={(e) => setRoom({ ...room, length: Number(e.target.value) })}
+                    className="text-input"
+                  />
+                </div>
+                <div className="control-group">
+                  <label>Height (m)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="5"
+                    value={room.height}
+                    onChange={(e) => setRoom({ ...room, height: Number(e.target.value) })}
+                    className="text-input"
+                  />
+                </div>
+              </div>
             </div>
-          </div>
 
-          {/* Scale control */}
-          <div style={{ marginBottom: "15px" }}>
-            <h4 style={{ fontSize: "14px", marginBottom: "8px" }}>Scale</h4>
-            <div style={{ marginBottom: "10px" }}>
-              <label style={{ display: "block", fontSize: "12px", marginBottom: "4px" }}>
-                Uniform Scale: {selectedItem.scale[0].toFixed(1)}x
-              </label>
-              <input
-                type="range"
-                min="0.5"
-                max="2"
-                step="0.1"
-                value={selectedItem.scale[0]}
-                onChange={(e) => handleUniformScale(Number.parseFloat(e.target.value))}
-                style={{ width: "100%" }}
-              />
-            </div>
-          </div>
-
-          <button
-            onClick={() => removeFurniture(selectedItem.id)}
-            style={{ ...buttonStyle, backgroundColor: "#f44336", marginTop: "10px" }}
-          >
-            Remove Item
-          </button>
-        </div>
-      )}
-
-      {/* Snapshots */}
-      <div style={{ marginBottom: "20px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-          <h3 style={{ fontSize: "18px", margin: 0 }}>Snapshots</h3>
-          <button onClick={() => setShowSnapshots(!showSnapshots)} style={{ ...buttonStyle, padding: "4px 8px" }}>
-            {showSnapshots ? "Hide" : "Show"}
-          </button>
-        </div>
-
-        <button onClick={() => captureSnapshot("")} style={buttonStyle}>
-          Capture Snapshot
-        </button>
-
-        {showSnapshots && snapshots.length > 0 && (
-          <div
-            style={{
-              marginTop: "10px",
-              maxHeight: "200px",
-              overflowY: "auto",
-              border: "1px solid #eee",
-              borderRadius: "4px",
-              padding: "10px",
-            }}
-          >
-            {snapshots.map((snapshot) => (
-              <div
-                key={snapshot.id}
-                style={{ marginBottom: "10px", borderBottom: "1px solid #eee", paddingBottom: "10px" }}
-              >
-                <img
-                  src={snapshot.imageData || "/placeholder.svg"}
-                  alt={`Snapshot ${snapshot.id}`}
-                  style={{ width: "100%", height: "auto", borderRadius: "4px", cursor: "pointer" }}
+            {/* Wall settings */}
+            <div className="tab-section">
+              <h3>Wall</h3>
+              <div className="control-group">
+                <label>Color</label>
+                <input
+                  type="color"
+                  value={room.wallColor}
+                  onChange={(e) => setRoom({ ...room, wallColor: e.target.value })}
+                  className="color-picker"
                 />
-                <div style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
-                  {new Date(snapshot.timestamp).toLocaleString()}
+              </div>
+
+              {/* Wall texture */}
+              <div className="control-group">
+                <label>Texture</label>
+                <div className="button-row">
+                  <button onClick={() => wallTextureInputRef.current?.click()} className="primary-button">
+                    Upload Texture
+                  </button>
+                  <button
+                    onClick={() => handleClearTexture("wall")}
+                    className="secondary-button"
+                    disabled={!room.wallTexture.url}
+                  >
+                    Clear
+                  </button>
+                </div>
+                <input
+                  type="file"
+                  ref={wallTextureInputRef}
+                  onChange={(e) => handleTextureUpload(e, "wall")}
+                  accept="image/*"
+                  style={{ display: "none" }}
+                />
+
+                {room.wallTexture.url && (
+                  <div className="texture-preview">
+                    <div className="preview-image">
+                      <img
+                        src={room.wallTexture.url}
+                        alt="Wall texture preview"
+                      />
+                    </div>
+
+                    {/* Texture repeat controls */}
+                    <div className="control-grid">
+                      <div className="control-group">
+                        <label>Repeat X: {room.wallTexture.repeat[0]}</label>
+                        <input
+                          type="range"
+                          min="1"
+                          max="10"
+                          step="1"
+                          value={room.wallTexture.repeat[0]}
+                          onChange={(e) => handleTextureRepeatChange("wall", "x", Number(e.target.value))}
+                          className="slider"
+                        />
+                      </div>
+                      <div className="control-group">
+                        <label>Repeat Y: {room.wallTexture.repeat[1]}</label>
+                        <input
+                          type="range"
+                          min="1"
+                          max="10"
+                          step="1"
+                          value={room.wallTexture.repeat[1]}
+                          onChange={(e) => handleTextureRepeatChange("wall", "y", Number(e.target.value))}
+                          className="slider"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Floor settings */}
+            <div className="tab-section">
+              <h3>Floor</h3>
+              <div className="control-group">
+                <label>Color</label>
+                <input
+                  type="color"
+                  value={room.floorColor}
+                  onChange={(e) => setRoom({ ...room, floorColor: e.target.value })}
+                  className="color-picker"
+                />
+              </div>
+
+              {/* Floor texture */}
+              <div className="control-group">
+                <label>Texture</label>
+                <div className="button-row">
+                  <button onClick={() => floorTextureInputRef.current?.click()} className="primary-button">
+                    Upload Texture
+                  </button>
+                  <button
+                    onClick={() => handleClearTexture("floor")}
+                    className="secondary-button"
+                    disabled={!room.floorTexture.url}
+                  >
+                    Clear
+                  </button>
+                </div>
+                <input
+                  type="file"
+                  ref={floorTextureInputRef}
+                  onChange={(e) => handleTextureUpload(e, "floor")}
+                  accept="image/*"
+                  style={{ display: "none" }}
+                />
+
+                {room.floorTexture.url && (
+                  <div className="texture-preview">
+                    <div className="preview-image">
+                      <img
+                        src={room.floorTexture.url}
+                        alt="Floor texture preview"
+                      />
+                    </div>
+
+                    {/* Texture repeat controls */}
+                    <div className="control-grid">
+                      <div className="control-group">
+                        <label>Repeat X: {room.floorTexture.repeat[0]}</label>
+                        <input
+                          type="range"
+                          min="1"
+                          max="10"
+                          step="1"
+                          value={room.floorTexture.repeat[0]}
+                          onChange={(e) => handleTextureRepeatChange("floor", "x", Number(e.target.value))}
+                          className="slider"
+                        />
+                      </div>
+                      <div className="control-group">
+                        <label>Repeat Y: {room.floorTexture.repeat[1]}</label>
+                        <input
+                          type="range"
+                          min="1"
+                          max="10"
+                          step="1"
+                          value={room.floorTexture.repeat[1]}
+                          onChange={(e) => handleTextureRepeatChange("floor", "y", Number(e.target.value))}
+                          className="slider"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )
+
+      case "view":
+        return (
+          <>
+            <div className="tab-section">
+              <h3>View Mode</h3>
+              <div className="button-row view-buttons">
+                {Object.values(ViewMode).map((mode) => (
+                  <button
+                    key={mode}
+                    onClick={() => onChangeViewMode(mode)}
+                    className={`view-button ${viewMode === mode ? "active" : ""}`}
+                  >
+                    {mode === ViewMode.ThreeD ? "3D View" : "Top Down View"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="tab-section">
+              <div className="header-with-button">
+                <h3>Snapshots</h3>
+                <button
+                  onClick={() => setShowSnapshots(!showSnapshots)}
+                  className="small-button"
+                >
+                  {showSnapshots ? "Hide" : "Show"}
+                </button>
+              </div>
+
+              <button onClick={() => captureSnapshot("")} className="primary-button full-width">
+                Capture Snapshot
+              </button>
+
+              {showSnapshots && snapshots.length > 0 && (
+                <div className="snapshots-container">
+                  {snapshots.map((snapshot) => (
+                    <div key={snapshot.id} className="snapshot-item">
+                      <img
+                        src={snapshot.imageData || "/placeholder.svg"}
+                        alt={`Snapshot ${snapshot.id}`}
+                      />
+                      <div className="snapshot-timestamp">
+                        {new Date(snapshot.timestamp).toLocaleString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )
+
+      case "save":
+        return (
+          <>
+            <div className="tab-section">
+              <h3>Save Design</h3>
+              <div className="control-group">
+                <label>Design Name</label>
+                <div className="save-design-container">
+                  <input
+                    type="text"
+                    value={designName}
+                    onChange={(e) => setDesignName(e.target.value)}
+                    placeholder="Enter design name"
+                    className="text-input"
+                  />
+                  <button onClick={handleSaveDesign} className="primary-button" disabled={!designName}>
+                    Save
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+
+              <div className="header-with-button">
+                <h3>Saved Designs</h3>
+                <button
+                  onClick={() => setShowSavedDesigns(!showSavedDesigns)}
+                  className="small-button"
+                >
+                  {showSavedDesigns ? "Hide" : "Show"}
+                </button>
+              </div>
+
+              {showSavedDesigns && savedDesigns.length > 0 && (
+                <div className="saved-designs-list">
+                  {savedDesigns.map((design) => (
+                    <div key={design.id} className="saved-design-item">
+                      <div className="saved-design-name">{design.name}</div>
+                      <div className="saved-design-date">
+                        {new Date(parseInt(design.id)).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {showSavedDesigns && savedDesigns.length === 0 && (
+                <div className="empty-state">No saved designs yet</div>
+              )}
+            </div>
+          </>
+        )
+
+      default:
+        return null
+    }
+  }
+
+  return (
+    <div className="control-panel">
+      <div className="panel-header">
+        <h2>Room Designer</h2>
       </div>
 
-      {/* Save design */}
-      <div style={{ marginTop: "auto", paddingTop: "20px" }}>
-        <h3 style={{ fontSize: "18px", marginBottom: "10px" }}>Save Design</h3>
-        <div style={{ display: "flex", gap: "10px" }}>
-          <input
-            type="text"
-            value={designName}
-            onChange={(e) => setDesignName(e.target.value)}
-            placeholder="Design name"
-            style={{ flex: 1, padding: "8px" }}
-          />
-          <button onClick={handleSaveDesign} style={buttonStyle}>
-            Save
-          </button>
-        </div>
+      <div className="tabs">
+        <button
+          className={`tab ${activeTab === "furniture" ? "active" : ""}`}
+          onClick={() => setActiveTab("furniture")}
+        >
+          Furniture
+        </button>
+        <button
+          className={`tab ${activeTab === "room" ? "active" : ""}`}
+          onClick={() => setActiveTab("room")}
+        >
+          Room
+        </button>
+        <button
+          className={`tab ${activeTab === "view" ? "active" : ""}`}
+          onClick={() => setActiveTab("view")}
+        >
+          View
+        </button>
+        <button
+          className={`tab ${activeTab === "save" ? "active" : ""}`}
+          onClick={() => setActiveTab("save")}
+        >
+          Save
+        </button>
       </div>
+
+      <div className="panel-content">
+        {renderTabContent()}
+      </div>
+
+      <style jsx>{`
+        .control-panel {
+          width: 100%;
+          height: 100vh;
+          background-color: #fff;
+          box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          position: absolute;
+          right: 0;
+          top: 0;
+          font-family: 'Inter', sans-serif;
+        }
+
+        .panel-header {
+          padding: 20px;
+          border-bottom: 1px solid #eee;
+        }
+
+        .panel-header h2 {
+          margin: 0;
+          color: #333;
+          font-size: 1.5rem;
+          font-weight: 600;
+        }
+
+        .tabs {
+          display: flex;
+          border-bottom: 1px solid #eee;
+        }
+
+        .tab {
+          flex: 1;
+          padding: 12px;
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-size: 0.9rem;
+          color: #666;
+          position: relative;
+          transition: all 0.2s;
+        }
+
+        .tab:hover {
+          background-color: #f9f9f9;
+        }
+
+        .tab.active {
+          color: #4285F4;
+          font-weight: 600;
+        }
+
+        .tab.active::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          width: 100%;
+          height: 3px;
+          background-color: #4285F4;
+        }
+
+        .panel-content {
+          flex: 1;
+          overflow-y: auto;
+          padding: 20px;
+        }
+
+        .tab-section {
+          margin-bottom: 30px;
+        }
+
+        .tab-section h3 {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #333;
+          margin: 0 0 15px 0;
+          padding-bottom: 8px;
+          border-bottom: 1px solid #eee;
+        }
+
+        .control-group {
+          margin-bottom: 16px;
+        }
+
+        .control-group label {
+          display: block;
+          font-size: 0.9rem;
+          color: #555;
+          margin-bottom: 6px;
+        }
+
+        .color-picker {
+          width: 100%;
+          height: 40px;
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          cursor: pointer;
+        }
+
+        .text-input {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          font-size: 0.9rem;
+        }
+
+        .slider {
+          width: 100%;
+          height: 6px;
+          appearance: none;
+          background: #eee;
+          outline: none;
+          border-radius: 3px;
+        }
+
+        .slider::-webkit-slider-thumb {
+          appearance: none;
+          width: 18px;
+          height: 18px;
+          background: #4285F4;
+          border-radius: 50%;
+          cursor: pointer;
+        }
+
+        .control-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        .button-row {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 8px;
+        }
+
+        .button-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+
+        .furniture-button {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 12px;
+          border: 1px solid #eee;
+          border-radius: 8px;
+          background-color: #f9f9f9;
+          color: #333;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .furniture-button:hover {
+          background-color: #f0f0f0;
+          border-color: #ddd;
+          transform: translateY(-2px);
+        }
+
+        .furniture-button .icon {
+          font-size: 24px;
+          margin-bottom: 8px;
+        }
+
+        .primary-button {
+          padding: 10px 16px;
+          background-color: #4285F4;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 500;
+          transition: background-color 0.2s;
+        }
+
+        .primary-button:hover {
+          background-color: #3367d6;
+        }
+
+        .primary-button:disabled {
+          background-color: #a1c0fa;
+          cursor: not-allowed;
+        }
+
+        .secondary-button {
+          padding: 10px 16px;
+          background-color: #f1f3f4;
+          color: #333;
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 500;
+          transition: background-color 0.2s;
+        }
+
+        .secondary-button:hover {
+          background-color: #e8eaed;
+        }
+
+        .secondary-button:disabled {
+          background-color: #f1f3f4;
+          color: #999;
+          cursor: not-allowed;
+        }
+
+        .danger-button {
+          padding: 10px 16px;
+          background-color: #ea4335;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 500;
+          width: 100%;
+          margin-top: 8px;
+          transition: background-color 0.2s;
+        }
+
+        .danger-button:hover {
+          background-color: #d33426;
+        }
+
+        .full-width {
+          width: 100%;
+        }
+
+        .texture-preview {
+          margin-top: 12px;
+        }
+
+        .preview-image {
+          width: 100%;
+          height: 80px;
+          overflow: hidden;
+          border-radius: 6px;
+          margin-bottom: 8px;
+        }
+
+        .preview-image img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .header-with-button {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 15px;
+          padding-bottom: 8px;
+          border-bottom: 1px solid #eee;
+        }
+
+        .header-with-button h3 {
+          margin: 0;
+          padding: 0;
+          border: none;
+        }
+
+        .small-button {
+          padding: 4px 8px;
+          background-color: #f1f3f4;
+          color: #333;
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          cursor: pointer;
+          font-size: 0.8rem;
+        }
+
+        .snapshots-container {
+          max-height: 250px;
+          overflow-y: auto;
+          margin-top: 12px;
+          border: 1px solid #eee;
+          border-radius: 6px;
+          padding: 8px;
+        }
+
+        .snapshot-item {
+          margin-bottom: 12px;
+          border-bottom: 1px solid #eee;
+          padding-bottom: 12px;
+        }
+
+        .snapshot-item:last-child {
+          margin-bottom: 0;
+          border-bottom: none;
+        }
+
+        .snapshot-item img {
+          width: 100%;
+          height: auto;
+          border-radius: 6px;
+          cursor: pointer;
+        }
+
+        .snapshot-timestamp {
+          font-size: 0.8rem;
+          color: #666;
+          margin-top: 4px;
+        }
+
+        .save-design-container {
+          display: flex;
+          gap: 8px;
+        }
+
+        .save-design-container input {
+          flex: 1;
+        }
+
+        .saved-designs-list {
+          margin-top: 12px;
+          border: 1px solid #eee;
+          border-radius: 6px;
+          overflow: hidden;
+        }
+
+        .saved-design-item {
+          padding: 12px;
+          border-bottom: 1px solid #eee;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+
+        .saved-design-item:last-child {
+          border-bottom: none;
+        }
+
+        .saved-design-item:hover {
+          background-color: #f9f9f9;
+        }
+
+        .saved-design-name {
+          font-weight: 500;
+          color: #333;
+        }
+
+        .saved-design-date {
+          font-size: 0.8rem;
+          color: #666;
+        }
+
+        .empty-state {
+          padding: 20px;
+          text-align: center;
+          color: #666;
+          font-style: italic;
+          background-color: #f9f9f9;
+          border-radius: 6px;
+        }
+
+        .view-buttons {
+          margin-bottom: 16px;
+        }
+
+        .view-button {
+          flex: 1;
+          padding: 12px 16px;
+          background-color: #f1f3f4;
+          color: #333;
+          border: 1px solid #ddd;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 500;
+          transition: all 0.2s;
+        }
+
+        .view-button.active {
+          background-color: #4285F4;
+          color: white;
+          border-color: #4285F4;
+        }
+      `}</style>
     </div>
   )
 }
-
-const buttonStyle = {
-  padding: "8px 16px",
-  backgroundColor: "#4285F4",
-  color: "white",
-  border: "none",
-  borderRadius: "4px",
-  cursor: "pointer",
-}
-
