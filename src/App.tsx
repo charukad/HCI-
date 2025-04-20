@@ -7,6 +7,7 @@ import RoomDesigner2D from "./components/RoomDesigner2D"
 import { FurnitureProvider } from "./context/FurnitureContext"
 import { ViewMode, WorkflowStep } from "./types"
 import { useFurniture } from "./context/FurnitureContext"
+import "./App.css"
 
 // Wrapper component to access context
 function AppContent() {
@@ -38,22 +39,7 @@ function AppContent() {
               {/* Toggle button for control panel */}
               <button
                 onClick={() => setIsPanelVisible(!isPanelVisible)}
-                style={{
-                  position: "absolute",
-                  top: "20px",
-                  right: "20px",
-                  zIndex: 100,
-                  padding: "8px 12px",
-                  backgroundColor: "#4285F4",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-                }}
+                className="panel-toggle"
               >
                 {isPanelVisible ? (
                   <>
@@ -67,7 +53,6 @@ function AppContent() {
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      style={{ marginRight: "8px" }}
                     >
                       <path d="M15 18l-6-6 6-6" />
                     </svg>
@@ -85,7 +70,6 @@ function AppContent() {
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      style={{ marginRight: "8px" }}
                     >
                       <path d="M9 18l6-6-6-6" />
                     </svg>
@@ -117,59 +101,21 @@ function AppContent() {
   // Workflow navigation
   const renderWorkflowNav = () => {
     return (
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          padding: "15px",
-          backgroundColor: "#f8f8f8",
-          borderBottom: "1px solid #ddd",
-          display: "flex",
-          justifyContent: "center",
-          zIndex: 1000,
-          boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-        }}
-      >
+      <div className="workflow-nav">
         {Object.values(WorkflowStep).map((step, index) => (
-          <div key={step} style={{ display: "flex", alignItems: "center" }}>
+          <div key={step} className="workflow-step">
             <button
               onClick={() => setWorkflowStep(step)}
-              style={{
-                padding: "10px 20px",
-                backgroundColor: workflowStep === step ? "#4285F4" : "#f0f0f0",
-                color: workflowStep === step ? "white" : "#333",
-                border: "none",
-                borderRadius: "4px",
-                cursor: "pointer",
-                fontWeight: workflowStep === step ? "bold" : "normal",
-                display: "flex",
-                alignItems: "center",
-                boxShadow: workflowStep === step ? "0 2px 5px rgba(0,0,0,0.2)" : "none",
-              }}
+              className={`step-button ${workflowStep === step ? "active" : ""}`}
             >
-              <div
-                style={{
-                  width: "24px",
-                  height: "24px",
-                  borderRadius: "50%",
-                  backgroundColor: workflowStep === step ? "white" : "#ddd",
-                  color: workflowStep === step ? "#4285F4" : "#666",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginRight: "8px",
-                  fontWeight: "bold",
-                }}
-              >
+              <div className="step-indicator">
                 {index + 1}
               </div>
               {step}
             </button>
 
             {index < Object.values(WorkflowStep).length - 1 && (
-              <div style={{ margin: "0 15px", color: "#999" }}>
+              <div className="step-connector">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path
                     d="M9 18L15 12L9 6"
@@ -223,4 +169,3 @@ export default function App() {
     </FurnitureProvider>
   )
 }
-

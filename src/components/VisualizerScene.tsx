@@ -66,7 +66,7 @@ export default function VisualizerScene({ viewMode }: VisualizerSceneProps) {
         <color attach="background" args={["#f0f0f0"]} />
 
         {viewMode === ViewMode.ThreeD ? (
-          <PerspectiveCamera makeDefault position={[0, 5, 10]} />
+          <PerspectiveCamera makeDefault position={[8, 4, 8]} />
         ) : (
           <PerspectiveCamera makeDefault position={[0, 15, 0.001]} rotation={[-Math.PI / 2, 0, 0]} />
         )}
@@ -102,9 +102,9 @@ export default function VisualizerScene({ viewMode }: VisualizerSceneProps) {
           enableZoom={true}
           minPolarAngle={0}
           maxPolarAngle={viewMode === ViewMode.ThreeD ? Math.PI / 2 : 0}
+          target={[0, 0, 0]}
         />
       </Canvas>
     </div>
   )
 }
-
