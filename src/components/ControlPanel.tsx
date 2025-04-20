@@ -21,6 +21,13 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
     updateFurnitureColor,
     updateFurnitureRotation,
     updateFurnitureScale,
+    updateFurnitureMaterial,
+    updateFurnitureTexture,
+    updateFurnitureFinish,
+    updateLampIntensity,
+    updateLampColor,
+    applyRoomPreset,
+    applyColorScheme,
     saveDesign,
     savedDesigns,
     snapshots,
@@ -31,6 +38,8 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
   const [showSavedDesigns, setShowSavedDesigns] = useState(false)
   const [showSnapshots, setShowSnapshots] = useState(false)
   const [activeTab, setActiveTab] = useState("furniture") // Default tab
+  const [activeMaterialType, setActiveMaterialType] = useState("fabric")
+  const [activeTexture, setActiveTexture] = useState("solid")
 
   // Refs for file inputs
   const wallTextureInputRef = useRef<HTMLInputElement>(null)
@@ -163,6 +172,39 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
     })
   }
 
+  const handleLightingChange = (property: string, value: any) => {
+    setRoom((prevRoom) => ({
+      ...prevRoom,
+      [property]: value
+    }));
+  }
+  
+  const handleMaterialChange = (id: string, material: string) => {
+    setActiveMaterialType(material);
+    updateFurnitureMaterial(id, material);
+  }
+  
+  const handleTextureChange = (id: string, texture: string) => {
+    setActiveTexture(texture);
+    updateFurnitureTexture(id, texture);
+  }
+  
+  const handleApplyPreset = (preset: string) => {
+    applyRoomPreset(preset);
+  }
+  
+  const handleApplyColorScheme = (scheme: string) => {
+    const schemes: { [key: string]: string[] } = {
+      'neutral': ['#F5F5F5', '#E0E0E0', '#BDBDBD', '#9E9E9E'],
+      'warm': ['#FFF8E1', '#FFE0B2', '#FFCC80', '#FFB74D'],
+      'cool': ['#E1F5FE', '#B3E5FC', '#81D4FA', '#4FC3F7'],
+      'elegant': ['#FAFAFA', '#212121', '#616161', '#757575'],
+      'natural': ['#EFEBE9', '#D7CCC8', '#BCAAA4', '#A1887F'],
+    };
+    
+    applyColorScheme(scheme, schemes[scheme] || schemes['neutral']);
+  }
+
   const renderTabContent = () => {
     switch (activeTab) {
       case "furniture":
@@ -196,6 +238,30 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
                   <div className="icon">💡</div>
                   <span>Lamp</span>
                 </button>
+                <button onClick={() => handleAddFurniture(FurnitureType.BOOKSHELF)} className="furniture-button">
+                  <div className="icon">📚</div>
+                  <span>Bookshelf</span>
+                </button>
+                <button onClick={() => handleAddFurniture(FurnitureType.RUG)} className="furniture-button">
+                  <div className="icon">🧩</div>
+                  <span>Rug</span>
+                </button>
+                <button onClick={() => handleAddFurniture(FurnitureType.WALL_ART)} className="furniture-button">
+                  <div className="icon">🖼️</div>
+                  <span>Wall Art</span>
+                </button>
+                <button onClick={() => handleAddFurniture(FurnitureType.BED)} className="furniture-button">
+                  <div className="icon">🛏️</div>
+                  <span>Bed</span>
+                </button>
+                <button onClick={() => handleAddFurniture(FurnitureType.DINING_TABLE)} className="furniture-button">
+                  <div className="icon">🍽️</div>
+                  <span>Dining Table</span>
+                </button>
+                <button onClick={() => handleAddFurniture(FurnitureType.DINING_CHAIR)} className="furniture-button">
+                  <div className="icon">🪑</div>
+                  <span>Dining Chair</span>
+                </button>
               </div>
             </div>
 
@@ -214,6 +280,106 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
                     className="color-picker"
                   />
                 </div>
+
+                {/* Material type selector (for applicable furniture) */}
+                {selectedItem.type !== FurnitureType.PLANT && selectedItem.type !== FurnitureType.RUG && (
+                  <div className="control-group">
+                    <label>Material</label>
+                    <div className="button-row">
+                      {['fabric', 'leather', 'wood', 'metal', 'glass'].map((material) => (
+                        <button
+                          key={material}
+                          onClick={() => handleMaterialChange(selectedItem.id, material)}
+                          className={`control-button ${selectedItem.materialType === material || (!selectedItem.materialType && material === activeMaterialType) ? 'active' : ''}`}
+                        >
+                          {material}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Wood texture selector (for wood material) */}
+                {selectedItem.materialType === 'wood' && (
+                  <div className="control-group">
+                    <label>Wood Type</label>
+                    <div className="texture-grid">
+                      {['oak', 'walnut', 'pine', 'mahogany'].map((wood) => (
+                        <button
+                          key={wood}
+                          onClick={() => handleTextureChange(selectedItem.id, wood)}
+                          className={`texture-button ${selectedItem.texture === wood ? 'active' : ''}`}
+                        >
+                          <div className={`texture-swatch ${wood}`}></div>
+                          <span>{wood}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Fabric patterns (for fabric/upholstery) */}
+                {selectedItem.materialType === 'fabric' && (
+                  <div className="control-group">
+                    <label>Pattern</label>
+                    <div className="button-row">
+                      {['solid', 'striped', 'geometric', 'floral'].map((pattern) => (
+                        <button
+                          key={pattern}
+                          onClick={() => handleTextureChange(selectedItem.id, pattern)}
+                          className={`control-button ${selectedItem.texture === pattern || (!selectedItem.texture && pattern === activeTexture) ? 'active' : ''}`}
+                        >
+                          {pattern}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Finish type for metal/glass */}
+                {(selectedItem.materialType === 'metal' || selectedItem.materialType === 'glass') && (
+                  <div className="control-group">
+                    <label>Finish</label>
+                    <div className="button-row">
+                      {['matte', 'glossy', 'brushed', 'polished'].map((finish) => (
+                        <button
+                          key={finish}
+                          onClick={() => updateFurnitureFinish(selectedItem.id, finish)}
+                          className={`control-button ${selectedItem.finish === finish ? 'active' : ''}`}
+                        >
+                          {finish}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Lamp specific controls */}
+                {selectedItem.type === FurnitureType.LAMP && (
+                  <>
+                    <div className="control-group">
+                      <label>Light Intensity: {selectedItem.lightIntensity || 0.5}</label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value={selectedItem.lightIntensity || 0.5}
+                        onChange={(e) => updateLampIntensity(selectedItem.id, parseFloat(e.target.value))}
+                        className="slider"
+                      />
+                    </div>
+                    <div className="control-group">
+                      <label>Light Color</label>
+                      <input
+                        type="color"
+                        value={selectedItem.lightColor || "#FFF5E0"}
+                        onChange={(e) => updateLampColor(selectedItem.id, e.target.value)}
+                        className="color-picker"
+                      />
+                    </div>
+                  </>
+                )}
 
                 {/* Rotation control */}
                 <div className="control-group">
@@ -256,6 +422,52 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
                 </button>
               </div>
             )}
+
+            {/* Room presets */}
+            <div className="tab-section">
+              <h3>Room Presets</h3>
+              <div className="preset-grid">
+                {['living-room', 'bedroom', 'office', 'dining-room'].map((preset) => (
+                  <button 
+                    key={preset} 
+                    className="preset-button"
+                    onClick={() => handleApplyPreset(preset)}
+                  >
+                    <div className="preset-thumbnail">
+                      <div className="preset-icon"></div>
+                    </div>
+                    <span>{preset.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Color schemes */}
+            <div className="tab-section">
+              <h3>Color Schemes</h3>
+              <div className="color-scheme-grid">
+                {[
+                  {name: 'neutral', colors: ['#F5F5F5', '#E0E0E0', '#BDBDBD', '#9E9E9E']},
+                  {name: 'warm', colors: ['#FFF8E1', '#FFE0B2', '#FFCC80', '#FFB74D']},
+                  {name: 'cool', colors: ['#E1F5FE', '#B3E5FC', '#81D4FA', '#4FC3F7']},
+                  {name: 'elegant', colors: ['#FAFAFA', '#212121', '#616161', '#757575']},
+                  {name: 'natural', colors: ['#EFEBE9', '#D7CCC8', '#BCAAA4', '#A1887F']},
+                ].map((scheme) => (
+                  <button 
+                    key={scheme.name} 
+                    className="color-scheme-button"
+                    onClick={() => handleApplyColorScheme(scheme.name)}
+                  >
+                    <div className="color-samples">
+                      {scheme.colors.map((color, i) => (
+                        <div key={i} className="color-sample" style={{backgroundColor: color}}></div>
+                      ))}
+                    </div>
+                    <span>{scheme.name.charAt(0).toUpperCase() + scheme.name.slice(1)}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </>
         )
 
@@ -299,6 +511,47 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
                     className="text-input"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Lighting settings */}
+            <div className="tab-section">
+              <h3>Lighting</h3>
+              <div className="control-group">
+                <label>Time of Day</label>
+                <select 
+                  className="select-input"
+                  value={room.timeOfDay}
+                  onChange={(e) => handleLightingChange('timeOfDay', e.target.value)}
+                >
+                  <option value="morning">Morning</option>
+                  <option value="day">Day</option>
+                  <option value="evening">Evening</option>
+                  <option value="night">Night</option>
+                </select>
+              </div>
+              
+              <div className="control-group">
+                <label>Ambient Light: {room.ambientLightIntensity.toFixed(1)}</label>
+                <input
+                  type="range"
+                  min="0.1"
+                  max="1"
+                  step="0.1"
+                  value={room.ambientLightIntensity}
+                  onChange={(e) => handleLightingChange('ambientLightIntensity', parseFloat(e.target.value))}
+                  className="slider"
+                />
+              </div>
+              
+              <div className="control-group">
+                <label>Main Light Color</label>
+                <input
+                  type="color"
+                  value={room.mainLightColor}
+                  onChange={(e) => handleLightingChange('mainLightColor', e.target.value)}
+                  className="color-picker"
+                />
               </div>
             </div>
 
@@ -602,387 +855,6 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
       <div className="panel-content">
         {renderTabContent()}
       </div>
-
-      <style jsx>{`
-        .control-panel {
-          width: 100%;
-          height: 100vh;
-          background-color: #fff;
-          box-shadow: -5px 0 15px rgba(0,0,0,0.1);
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-          position: absolute;
-          right: 0;
-          top: 0;
-          font-family: 'Inter', sans-serif;
-        }
-
-        .panel-header {
-          padding: 20px;
-          border-bottom: 1px solid #eee;
-        }
-
-        .panel-header h2 {
-          margin: 0;
-          color: #333;
-          font-size: 1.5rem;
-          font-weight: 600;
-        }
-
-        .tabs {
-          display: flex;
-          border-bottom: 1px solid #eee;
-        }
-
-        .tab {
-          flex: 1;
-          padding: 12px;
-          background: none;
-          border: none;
-          cursor: pointer;
-          font-size: 0.9rem;
-          color: #666;
-          position: relative;
-          transition: all 0.2s;
-        }
-
-        .tab:hover {
-          background-color: #f9f9f9;
-        }
-
-        .tab.active {
-          color: #4285F4;
-          font-weight: 600;
-        }
-
-        .tab.active::after {
-          content: '';
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          height: 3px;
-          background-color: #4285F4;
-        }
-
-        .panel-content {
-          flex: 1;
-          overflow-y: auto;
-          padding: 20px;
-        }
-
-        .tab-section {
-          margin-bottom: 30px;
-        }
-
-        .tab-section h3 {
-          font-size: 1rem;
-          font-weight: 600;
-          color: #333;
-          margin: 0 0 15px 0;
-          padding-bottom: 8px;
-          border-bottom: 1px solid #eee;
-        }
-
-        .control-group {
-          margin-bottom: 16px;
-        }
-
-        .control-group label {
-          display: block;
-          font-size: 0.9rem;
-          color: #555;
-          margin-bottom: 6px;
-        }
-
-        .color-picker {
-          width: 100%;
-          height: 40px;
-          border: 1px solid #ddd;
-          border-radius: 6px;
-          cursor: pointer;
-        }
-
-        .text-input {
-          width: 100%;
-          padding: 10px;
-          border: 1px solid #ddd;
-          border-radius: 6px;
-          font-size: 0.9rem;
-        }
-
-        .slider {
-          width: 100%;
-          height: 6px;
-          appearance: none;
-          background: #eee;
-          outline: none;
-          border-radius: 3px;
-        }
-
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          width: 18px;
-          height: 18px;
-          background: #4285F4;
-          border-radius: 50%;
-          cursor: pointer;
-        }
-
-        .control-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-        }
-
-        .button-row {
-          display: flex;
-          gap: 8px;
-          margin-bottom: 8px;
-        }
-
-        .button-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-        }
-
-        .furniture-button {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 12px;
-          border: 1px solid #eee;
-          border-radius: 8px;
-          background-color: #f9f9f9;
-          color: #333;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .furniture-button:hover {
-          background-color: #f0f0f0;
-          border-color: #ddd;
-          transform: translateY(-2px);
-        }
-
-        .furniture-button .icon {
-          font-size: 24px;
-          margin-bottom: 8px;
-        }
-
-        .primary-button {
-          padding: 10px 16px;
-          background-color: #4285F4;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 500;
-          transition: background-color 0.2s;
-        }
-
-        .primary-button:hover {
-          background-color: #3367d6;
-        }
-
-        .primary-button:disabled {
-          background-color: #a1c0fa;
-          cursor: not-allowed;
-        }
-
-        .secondary-button {
-          padding: 10px 16px;
-          background-color: #f1f3f4;
-          color: #333;
-          border: 1px solid #ddd;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 500;
-          transition: background-color 0.2s;
-        }
-
-        .secondary-button:hover {
-          background-color: #e8eaed;
-        }
-
-        .secondary-button:disabled {
-          background-color: #f1f3f4;
-          color: #999;
-          cursor: not-allowed;
-        }
-
-        .danger-button {
-          padding: 10px 16px;
-          background-color: #ea4335;
-          color: white;
-          border: none;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 500;
-          width: 100%;
-          margin-top: 8px;
-          transition: background-color 0.2s;
-        }
-
-        .danger-button:hover {
-          background-color: #d33426;
-        }
-
-        .full-width {
-          width: 100%;
-        }
-
-        .texture-preview {
-          margin-top: 12px;
-        }
-
-        .preview-image {
-          width: 100%;
-          height: 80px;
-          overflow: hidden;
-          border-radius: 6px;
-          margin-bottom: 8px;
-        }
-
-        .preview-image img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-
-        .header-with-button {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 15px;
-          padding-bottom: 8px;
-          border-bottom: 1px solid #eee;
-        }
-
-        .header-with-button h3 {
-          margin: 0;
-          padding: 0;
-          border: none;
-        }
-
-        .small-button {
-          padding: 4px 8px;
-          background-color: #f1f3f4;
-          color: #333;
-          border: 1px solid #ddd;
-          border-radius: 4px;
-          cursor: pointer;
-          font-size: 0.8rem;
-        }
-
-        .snapshots-container {
-          max-height: 250px;
-          overflow-y: auto;
-          margin-top: 12px;
-          border: 1px solid #eee;
-          border-radius: 6px;
-          padding: 8px;
-        }
-
-        .snapshot-item {
-          margin-bottom: 12px;
-          border-bottom: 1px solid #eee;
-          padding-bottom: 12px;
-        }
-
-        .snapshot-item:last-child {
-          margin-bottom: 0;
-          border-bottom: none;
-        }
-
-        .snapshot-item img {
-          width: 100%;
-          height: auto;
-          border-radius: 6px;
-          cursor: pointer;
-        }
-
-        .snapshot-timestamp {
-          font-size: 0.8rem;
-          color: #666;
-          margin-top: 4px;
-        }
-
-        .save-design-container {
-          display: flex;
-          gap: 8px;
-        }
-
-        .save-design-container input {
-          flex: 1;
-        }
-
-        .saved-designs-list {
-          margin-top: 12px;
-          border: 1px solid #eee;
-          border-radius: 6px;
-          overflow: hidden;
-        }
-
-        .saved-design-item {
-          padding: 12px;
-          border-bottom: 1px solid #eee;
-          cursor: pointer;
-          transition: background-color 0.2s;
-        }
-
-        .saved-design-item:last-child {
-          border-bottom: none;
-        }
-
-        .saved-design-item:hover {
-          background-color: #f9f9f9;
-        }
-
-        .saved-design-name {
-          font-weight: 500;
-          color: #333;
-        }
-
-        .saved-design-date {
-          font-size: 0.8rem;
-          color: #666;
-        }
-
-        .empty-state {
-          padding: 20px;
-          text-align: center;
-          color: #666;
-          font-style: italic;
-          background-color: #f9f9f9;
-          border-radius: 6px;
-        }
-
-        .view-buttons {
-          margin-bottom: 16px;
-        }
-
-        .view-button {
-          flex: 1;
-          padding: 12px 16px;
-          background-color: #f1f3f4;
-          color: #333;
-          border: 1px solid #ddd;
-          border-radius: 6px;
-          cursor: pointer;
-          font-weight: 500;
-          transition: all 0.2s;
-        }
-
-        .view-button.active {
-          background-color: #4285F4;
-          color: white;
-          border-color: #4285F4;
-        }
-      `}</style>
     </div>
   )
 }
