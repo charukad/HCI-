@@ -28,6 +28,15 @@ export enum FurnitureType {
   PENDANT_LIGHT = "pendant_light"
 }
 
+export enum MaterialType {
+  FABRIC = "fabric",
+  WOOD = "wood",
+  METAL = "metal",
+  GLASS = "glass",
+  LEATHER = "leather",
+  PLASTIC = "plastic"
+}
+
 export interface Point {
   x: number
   y: number
@@ -119,6 +128,7 @@ export const initialFurniture: FurnitureItem[] = [
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
     color: "#C69C6D",  // Tan/brown color
+    materialType: "fabric"
   },
   {
     id: "2",
@@ -127,6 +137,7 @@ export const initialFurniture: FurnitureItem[] = [
     rotation: [0, Math.PI, 0],
     scale: [1, 1, 1],
     color: "#C69C6D",  // Tan/brown color
+    materialType: "fabric"
   },
   // Green armchair
   {
@@ -136,6 +147,7 @@ export const initialFurniture: FurnitureItem[] = [
     rotation: [0, -Math.PI/2, 0],
     scale: [1, 1, 1],
     color: "#5B8C5A",  // Olive green
+    materialType: "fabric"
   },
   // Coffee tables
   {
@@ -145,6 +157,7 @@ export const initialFurniture: FurnitureItem[] = [
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
     color: "#A0825B",  // Light wood
+    materialType: "wood"
   },
   {
     id: "5",
@@ -153,6 +166,7 @@ export const initialFurniture: FurnitureItem[] = [
     rotation: [0, 0, 0],
     scale: [0.8, 0.8, 0.8],
     color: "#A0825B",  // Light wood
+    materialType: "wood"
   },
   // TV Stand
   {
@@ -162,6 +176,7 @@ export const initialFurniture: FurnitureItem[] = [
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
     color: "#333333",  // Dark gray/black
+    materialType: "wood"
   },
   // Plants for decoration
   {
@@ -189,7 +204,8 @@ export const initialFurniture: FurnitureItem[] = [
     scale: [1, 1, 1],
     color: "#212121",  // Black
     lightIntensity: 0.5,
-    lightColor: "#FFF5E0"
+    lightColor: "#FFF5E0",
+    materialType: "metal"
   },
   // Bookshelf
   {
@@ -199,6 +215,7 @@ export const initialFurniture: FurnitureItem[] = [
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
     color: "#8B4513",  // Brown
+    materialType: "wood"
   },
   // Rug
   {
@@ -208,6 +225,7 @@ export const initialFurniture: FurnitureItem[] = [
     rotation: [0, 0, 0],
     scale: [1.5, 1, 1.5],
     color: "#B0C4DE",  // Light steel blue
+    texture: "geometric"
   },
   // Wall art
   {
@@ -217,5 +235,6 @@ export const initialFurniture: FurnitureItem[] = [
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
     color: "#FFD700",  // Gold
+    texture: "abstract"
   },
 ]
