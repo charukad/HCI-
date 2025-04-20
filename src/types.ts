@@ -15,7 +15,17 @@ export enum FurnitureType {
   COFFEE_TABLE = "coffee_table",
   TV_STAND = "tv_stand",
   PLANT = "plant",
-  LAMP = "lamp"
+  LAMP = "lamp",
+  BOOKSHELF = "bookshelf",
+  RUG = "rug",
+  WALL_ART = "wall_art",
+  DINING_TABLE = "dining_table",
+  DINING_CHAIR = "dining_chair",
+  DESK = "desk",
+  OFFICE_CHAIR = "office_chair",
+  BED = "bed",
+  NIGHTSTAND = "nightstand",
+  PENDANT_LIGHT = "pendant_light"
 }
 
 export interface Point {
@@ -41,6 +51,11 @@ export interface FurnitureItem {
   rotation: [number, number, number]
   scale: [number, number, number]
   color: string
+  materialType?: string
+  texture?: string
+  finish?: string
+  lightIntensity?: number
+  lightColor?: string
 }
 
 export interface Room {
@@ -51,7 +66,10 @@ export interface Room {
   floorColor: string
   wallTexture: TextureInfo
   floorTexture: TextureInfo
-  walls: Wall[] // For custom room shapes
+  walls: Wall[]
+  ambientLightIntensity: number
+  mainLightColor: string
+  timeOfDay: 'morning' | 'day' | 'evening' | 'night'
 }
 
 export interface SavedDesign {
@@ -85,7 +103,10 @@ export const initialRoom: Room = {
     url: null,
     repeat: [4, 4],
   },
-  walls: [], // Empty for now, will be populated in 2D design
+  walls: [],
+  ambientLightIntensity: 0.5,
+  mainLightColor: "#FFFFFF",
+  timeOfDay: 'day'
 }
 
 // Initial furniture that matches the image
@@ -167,5 +188,34 @@ export const initialFurniture: FurnitureItem[] = [
     rotation: [0, 0, 0],
     scale: [1, 1, 1],
     color: "#212121",  // Black
-  }
+    lightIntensity: 0.5,
+    lightColor: "#FFF5E0"
+  },
+  // Bookshelf
+  {
+    id: "10",
+    type: FurnitureType.BOOKSHELF,
+    position: [-4.5, 0, -4],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    color: "#8B4513",  // Brown
+  },
+  // Rug
+  {
+    id: "11",
+    type: FurnitureType.RUG,
+    position: [0, 0, 0],
+    rotation: [0, 0, 0],
+    scale: [1.5, 1, 1.5],
+    color: "#B0C4DE",  // Light steel blue
+  },
+  // Wall art
+  {
+    id: "12",
+    type: FurnitureType.WALL_ART,
+    position: [0, 1.5, -4.9],
+    rotation: [0, 0, 0],
+    scale: [1, 1, 1],
+    color: "#FFD700",  // Gold
+  },
 ]

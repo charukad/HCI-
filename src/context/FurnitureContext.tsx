@@ -10,6 +10,7 @@ import {
   initialFurniture,
   initialRoom,
   WorkflowStep,
+  FurnitureType,
 } from "../types"
 
 interface FurnitureContextType {
@@ -26,6 +27,13 @@ interface FurnitureContextType {
   updateFurnitureRotation: (id: string, rotation: [number, number, number]) => void
   updateFurnitureScale: (id: string, scale: [number, number, number]) => void
   updateFurnitureColor: (id: string, color: string) => void
+  updateFurnitureMaterial: (id: string, materialType: string) => void
+  updateFurnitureTexture: (id: string, texture: string) => void
+  updateFurnitureFinish: (id: string, finish: string) => void
+  updateLampIntensity: (id: string, intensity: number) => void
+  updateLampColor: (id: string, color: string) => void
+  applyRoomPreset: (preset: string) => void
+  applyColorScheme: (scheme: string, colors: string[]) => void
   addFurniture: (type: string) => string
   removeFurniture: (id: string) => void
   saveDesign: (name: string) => void
@@ -64,6 +72,111 @@ export function FurnitureProvider({ children }: FurnitureProviderProps) {
   const updateFurnitureColor = (id: string, color: string) => {
     setFurniture((prev) => prev.map((item) => (item.id === id ? { ...item, color } : item)))
   }
+
+  const updateFurnitureMaterial = (id: string, materialType: string) => {
+    setFurniture((prev) => 
+      prev.map((item) => item.id === id ? { ...item, materialType } : item)
+    );
+  };
+
+  const updateFurnitureTexture = (id: string, texture: string) => {
+    setFurniture((prev) => 
+      prev.map((item) => item.id === id ? { ...item, texture } : item)
+    );
+  };
+
+  const updateFurnitureFinish = (id: string, finish: string) => {
+    setFurniture((prev) => 
+      prev.map((item) => item.id === id ? { ...item, finish } : item)
+    );
+  };
+
+  const updateLampIntensity = (id: string, intensity: number) => {
+    setFurniture((prev) => 
+      prev.map((item) => item.id === id ? { ...item, lightIntensity: intensity } : item)
+    );
+  };
+
+  const updateLampColor = (id: string, color: string) => {
+    setFurniture((prev) => 
+      prev.map((item) => item.id === id ? { ...item, lightColor: color } : item)
+    );
+  };
+
+  const applyRoomPreset = (preset: string) => {
+    // Define various room presets
+    const presets: {[key: string]: Partial<Room>} = {
+      'living-room': {
+        width: 10,
+        length: 8,
+        height: 3,
+        wallColor: "#F5F5F5",
+        floorColor: "#D2B48C",
+        ambientLightIntensity: 0.6,
+        mainLightColor: "#FFFFFF",
+        timeOfDay: 'day' as const
+      },
+      'bedroom': {
+        width: 8,
+        length: 10,
+        height: 2.8,
+        wallColor: "#E0F2F1",
+        floorColor: "#8D6E63",
+        ambientLightIntensity: 0.4,
+        mainLightColor: "#FFD6AA",
+        timeOfDay: 'evening' as const
+      },
+      'office': {
+        width: 7,
+        length: 6,
+        height: 2.8,
+        wallColor: "#ECEFF1",
+        floorColor: "#455A64",
+        ambientLightIntensity: 0.7,
+        mainLightColor: "#FFFFFF",
+        timeOfDay: 'day' as const
+      },
+      // Add more presets as needed
+    };
+    
+    if (presets[preset]) {
+      setRoom({
+        ...room,
+        ...presets[preset]
+      });
+      
+      // Could also set furniture based on preset
+      // For example, load predefined furniture for a bedroom
+    }
+  };
+
+  // Apply color schemes to the room and furniture
+  const applyColorScheme = (scheme: string, colors: string[]) => {
+    // Update room colors
+    setRoom({
+      ...room,
+      wallColor: colors[0],
+      floorColor: colors[3],
+    });
+    
+    // Update furniture colors based on type
+    setFurniture((prev) => 
+      prev.map(item => {
+        // Assign different colors based on furniture type
+        let color = colors[1]; // Default
+        
+        if (item.type === FurnitureType.SOFA || item.type === FurnitureType.ARMCHAIR) {
+          color = colors[2];
+        } else if (item.type === FurnitureType.COFFEE_TABLE || item.type === FurnitureType.TV_STAND) {
+          color = colors[1];
+        } else if (item.type === FurnitureType.PLANT) {
+          color = "#2E7D32"; // Keep plants green
+        }
+        
+        return { ...item, color };
+      })
+    );
+  };
 
   const addFurniture = (type: string) => {
     const newItem: FurnitureItem = {
@@ -164,6 +277,13 @@ export function FurnitureProvider({ children }: FurnitureProviderProps) {
         updateFurnitureRotation,
         updateFurnitureScale,
         updateFurnitureColor,
+        updateFurnitureMaterial,
+        updateFurnitureTexture,
+        updateFurnitureFinish,
+        updateLampIntensity,
+        updateLampColor,
+        applyRoomPreset,
+        applyColorScheme,
         addFurniture,
         removeFurniture,
         saveDesign,
@@ -185,4 +305,3 @@ export const useFurniture = (): FurnitureContextType => {
   }
   return context
 }
-

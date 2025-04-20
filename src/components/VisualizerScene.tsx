@@ -60,6 +60,17 @@ export default function VisualizerScene({ viewMode }: VisualizerSceneProps) {
     }
   }, [])
 
+  // Set environment lighting based on time of day
+  const getEnvironmentPreset = () => {
+    switch (room.timeOfDay) {
+      case 'morning': return 'dawn';
+      case 'day': return 'apartment';
+      case 'evening': return 'sunset';
+      case 'night': return 'night';
+      default: return 'apartment';
+    }
+  }
+
   return (
     <div ref={containerRef} style={{ width: "100%", height: "100%" }}>
       <Canvas shadows ref={canvasRef as any}>
@@ -71,8 +82,17 @@ export default function VisualizerScene({ viewMode }: VisualizerSceneProps) {
           <PerspectiveCamera makeDefault position={[0, 15, 0.001]} rotation={[-Math.PI / 2, 0, 0]} />
         )}
 
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 10, 5]} intensity={1} castShadow shadow-mapSize={[2048, 2048]} />
+        {/* Ambient light with intensity from room settings */}
+        <ambientLight intensity={room.ambientLightIntensity} />
+        
+        {/* Main directional light with color from room settings */}
+        <directionalLight 
+          position={[10, 10, 5]} 
+          intensity={1} 
+          castShadow 
+          shadow-mapSize={[2048, 2048]} 
+          color={room.mainLightColor}
+        />
 
         <Room
           width={room.width}
@@ -94,7 +114,7 @@ export default function VisualizerScene({ viewMode }: VisualizerSceneProps) {
           />
         ))}
 
-        <Environment preset="apartment" />
+        <Environment preset={getEnvironmentPreset()} />
         <OrbitControls
           ref={controlsRef}
           enablePan={true}
