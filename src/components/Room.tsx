@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useEffect } from "react"
 import * as THREE from "three"
 import { useFurniture } from "../context/FurnitureContext"
 import type { Point } from "../types"
@@ -19,6 +19,12 @@ interface RoomProps {
     url: string | null
     repeat: [number, number]
   }
+}
+
+// Define a type for the floor data to ensure proper typing
+interface FloorData {
+  customFloorGeometry: THREE.ShapeGeometry | THREE.PlaneGeometry
+  floorCenter: [number, number, number]
 }
 
 export default function Room({ width, length, height, wallColor, floorColor, wallTexture, floorTexture }: RoomProps) {
@@ -68,8 +74,14 @@ export default function Room({ width, length, height, wallColor, floorColor, wal
     return new THREE.MeshStandardMaterial({
       color: floorColor,
       map: floorTextureMap,
+      side: THREE.DoubleSide,
     })
   }, [floorColor, floorTextureMap])
+
+  // Log when floor color changes
+  useEffect(() => {
+    console.log("Floor color changed to:", floorColor);
+  }, [floorColor]);
 
   // Check if room is closed
   const isRoomClosed = (): boolean => {
@@ -147,40 +159,60 @@ export default function Room({ width, length, height, wallColor, floorColor, wal
     return orderedKeys.map((key) => keyToPoint.get(key)!).filter(Boolean)
   }
 
-  // Create custom floor geometry from walls
-  const customFloorGeometry = useMemo(() => {
+  // Create custom floor geometry and calculate center
+  const { customFloorGeometry, centerX, centerZ } = useMemo(() => {
     if (room.walls.length < 3) {
       // Default rectangular floor if no custom walls
-      return new THREE.PlaneGeometry(width, length)
+      return {
+        customFloorGeometry: new THREE.PlaneGeometry(width, length),
+        centerX: 0,
+        centerZ: 0
+      }
     }
 
     const points = getOrderedRoomPoints()
     if (points.length < 3) {
       // Fallback to rectangular floor if can't create polygon
-      return new THREE.PlaneGeometry(width, length)
+      return {
+        customFloorGeometry: new THREE.PlaneGeometry(width, length),
+        centerX: 0,
+        centerZ: 0
+      }
     }
+
+    // Calculate the center of the floor polygon
+    let centerX = 0;
+    let centerY = 0;
+    for (const point of points) {
+      centerX += point.x;
+      centerY += point.y;
+    }
+    centerX /= points.length;
+    centerY /= points.length;
 
     // Create a shape from the points
     const shape = new THREE.Shape()
 
-    // Reverse the points to fix the mirroring issue
-    const reversedPoints = [...points].reverse()
-
+    // Don't reverse the points - use original order
     // Move to the first point
-    shape.moveTo(reversedPoints[0].x, reversedPoints[0].y)
+    shape.moveTo(points[0].x - centerX, points[0].y - centerY)
 
-    // Add lines to all other points
-    for (let i = 1; i < reversedPoints.length; i++) {
-      shape.lineTo(reversedPoints[i].x, reversedPoints[i].y)
+    // Add lines to all other points, centered around origin
+    for (let i = 1; i < points.length; i++) {
+      shape.lineTo(points[i].x - centerX, points[i].y - centerY)
     }
 
     // Close the shape by connecting back to the first point
-    shape.lineTo(reversedPoints[0].x, reversedPoints[0].y)
+    shape.lineTo(points[0].x - centerX, points[0].y - centerY)
 
     // Create geometry from shape
     const geometry = new THREE.ShapeGeometry(shape)
-
-    return geometry
+    
+    return {
+      customFloorGeometry: geometry,
+      centerX,
+      centerZ: centerY // Y in 2D becomes Z in 3D
+    }
   }, [room.walls, width, length])
 
   // Generate 3D walls from 2D wall definitions
@@ -238,11 +270,37 @@ export default function Room({ width, length, height, wallColor, floorColor, wal
 
   return (
     <group>
-      {/* Custom Floor */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
-        <primitive object={customFloorGeometry} attach="geometry" />
-        <primitive object={floorMaterial} attach="material" />
-      </mesh>
+      {/* Default Floor for when custom walls aren't defined */}
+      {room.walls.length === 0 && (
+        <mesh 
+          rotation={[-Math.PI / 2, 0, 0]} 
+          position={[0, 0, 0]} 
+          receiveShadow
+        >
+          <planeGeometry args={[width, length]} />
+          <meshStandardMaterial 
+            color={floorColor} 
+            map={floorTextureMap}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      )}
+
+      {/* Custom Floor from walls */}
+      {room.walls.length >= 3 && isRoomClosed() && (
+        <mesh 
+          rotation={[-Math.PI / 2, Math.PI, Math.PI]} 
+          position={[centerX, 0, centerZ]} 
+          receiveShadow
+        >
+          <primitive object={customFloorGeometry} attach="geometry" />
+          <meshStandardMaterial 
+            color={floorColor} 
+            map={floorTextureMap}
+            side={THREE.DoubleSide}
+          />
+        </mesh>
+      )}
 
       {/* Walls */}
       {wallMeshes}
@@ -258,10 +316,10 @@ export default function Room({ width, length, height, wallColor, floorColor, wal
       {/* Corner markers for rectangular room */}
       {room.walls.length === 0 &&
         [
-          [halfWidth - 0.1, 0.01, halfLength - 0.1],
-          [halfWidth - 0.1, 0.01, -halfLength + 0.1],
-          [-halfWidth + 0.1, 0.01, halfLength - 0.1],
-          [-halfWidth + 0.1, 0.01, -halfLength + 0.1],
+          [halfWidth - 0.1, 0.01, halfLength - 0.1] as [number, number, number],
+          [halfWidth - 0.1, 0.01, -halfLength + 0.1] as [number, number, number],
+          [-halfWidth + 0.1, 0.01, halfLength - 0.1] as [number, number, number],
+          [-halfWidth + 0.1, 0.01, -halfLength + 0.1] as [number, number, number],
         ].map((pos, i) => (
           <mesh key={i} position={pos}>
             <sphereGeometry args={[0.08, 16, 16]} />
