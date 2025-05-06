@@ -25,7 +25,8 @@ export enum FurnitureType {
   OFFICE_CHAIR = "office_chair",
   BED = "bed",
   NIGHTSTAND = "nightstand",
-  PENDANT_LIGHT = "pendant_light"
+  PENDANT_LIGHT = "pendant_light",
+  CUSTOM_MODEL = "custom_model" // Added custom model type
 }
 
 export enum MaterialType {
@@ -53,6 +54,13 @@ export interface TextureInfo {
   repeat: [number, number]
 }
 
+// Add an interface for furniture dimensions
+export interface FurnitureDimension {
+  width: number
+  depth: number
+  height?: number
+}
+
 export interface FurnitureItem {
   id: string
   type: FurnitureType
@@ -65,6 +73,9 @@ export interface FurnitureItem {
   finish?: string
   lightIntensity?: number
   lightColor?: string
+  modelUrl?: string // Add URL for custom models
+  modelName?: string // Add name for custom models
+  customDimensions?: { width: number, depth: number, height: number } // Add custom dimensions for proper boundary calculation
 }
 
 export interface Room {
@@ -116,6 +127,27 @@ export const initialRoom: Room = {
   ambientLightIntensity: 0.5,
   mainLightColor: "#FFFFFF",
   timeOfDay: 'day'
+}
+
+// Default furniture dimensions including custom models
+export const FURNITURE_DIMENSIONS: Record<FurnitureType, FurnitureDimension> = {
+  [FurnitureType.SOFA]: { width: 2.2, depth: 1.0 },
+  [FurnitureType.ARMCHAIR]: { width: 1.1, depth: 1.0 },
+  [FurnitureType.COFFEE_TABLE]: { width: 1.2, depth: 0.7 },
+  [FurnitureType.TV_STAND]: { width: 2.0, depth: 0.5 },
+  [FurnitureType.PLANT]: { width: 0.4, depth: 0.4 },
+  [FurnitureType.LAMP]: { width: 0.5, depth: 0.5 },
+  [FurnitureType.BOOKSHELF]: { width: 1.2, depth: 0.4 },
+  [FurnitureType.RUG]: { width: 3.0, depth: 2.0 },
+  [FurnitureType.WALL_ART]: { width: 1.2, depth: 0.1 },
+  [FurnitureType.DINING_TABLE]: { width: 1.8, depth: 1.8 },
+  [FurnitureType.DINING_CHAIR]: { width: 0.8, depth: 0.8 },
+  [FurnitureType.DESK]: { width: 1.6, depth: 0.8 },
+  [FurnitureType.OFFICE_CHAIR]: { width: 0.7, depth: 0.7 },
+  [FurnitureType.BED]: { width: 2.0, depth: 3.0 },
+  [FurnitureType.NIGHTSTAND]: { width: 0.5, depth: 0.5 },
+  [FurnitureType.PENDANT_LIGHT]: { width: 0.4, depth: 0.4 },
+  [FurnitureType.CUSTOM_MODEL]: { width: 1.0, depth: 1.0 }, // Default size for custom models
 }
 
 // Initial furniture that matches the image

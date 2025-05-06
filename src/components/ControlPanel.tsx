@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useRef } from "react"
 import { useFurniture } from "../context/FurnitureContext"
-import { ViewMode, FurnitureType } from "../types"
+import { ViewMode, FurnitureType, type Room } from "../types"
 
 interface ControlPanelProps {
   viewMode: ViewMode
@@ -32,6 +32,8 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
     savedDesigns,
     snapshots,
     captureSnapshot,
+    importCustomModel,
+    setSelectedId
   } = useFurniture()
 
   const [designName, setDesignName] = useState("")
@@ -40,6 +42,14 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
   const [activeTab, setActiveTab] = useState("furniture") // Default tab
   const [activeMaterialType, setActiveMaterialType] = useState("fabric")
   const [activeTexture, setActiveTexture] = useState("solid")
+
+  // For custom model tab
+  const [customModelFile, setCustomModelFile] = useState<File | null>(null)
+  const [customModelUrl, setCustomModelUrl] = useState<string | null>(null)
+  const [customModelPreview, setCustomModelPreview] = useState<string | null>(null)
+  const [customModelName, setCustomModelName] = useState("")
+  const [customModelDimensions, setCustomModelDimensions] = useState({ width: 1.0, depth: 1.0, height: 1.0 })
+  const [customModels, setCustomModels] = useState<Array<{ id: string, name: string, url: string }>>([])
 
   // Refs for file inputs
   const wallTextureInputRef = useRef<HTMLInputElement>(null)
@@ -95,6 +105,78 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
     if (selectedItem) {
       updateFurnitureScale(selectedItem.id, [value, value, value])
     }
+  }
+
+  // Handle model file upload
+  const handleModelUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Check if the file is a GLB or GLTF
+    if (!file.name.toLowerCase().endsWith('.glb') && !file.name.toLowerCase().endsWith('.gltf')) {
+      alert('Please upload a GLB or GLTF file')
+      return
+    }
+
+    // Create a URL for the uploaded file
+    const modelUrl = URL.createObjectURL(file)
+    
+    setCustomModelFile(file)
+    setCustomModelUrl(modelUrl)
+    setCustomModelPreview(modelUrl) // In a real app, you might generate a thumbnail
+    setCustomModelName(file.name.split('.')[0]) // Default name from filename
+  }
+
+  // Handle adding the custom model to the scene
+  const handleAddCustomModel = () => {
+    if (!customModelUrl || !customModelName) return
+    
+    // Create a custom model using the context function
+    const modelId = importCustomModel(
+      customModelUrl,
+      customModelName,
+      customModelDimensions
+    )
+    
+    // Add to list of custom models for reuse
+    setCustomModels([
+      ...customModels,
+      { 
+        id: modelId, 
+        name: customModelName, 
+        url: customModelUrl 
+      }
+    ])
+    
+    // Reset form
+    setCustomModelName("")
+    setCustomModelPreview(null)
+    // Don't revoke the URL as it's still needed by the model
+    
+    // Select the newly added model
+    setSelectedId(modelId)
+    
+    // Switch to furniture tab to manipulate the newly added model
+    setActiveTab("furniture")
+  }
+
+  // Handle selecting a previously imported custom model
+  const handleSelectCustomModel = (modelId: string) => {
+    const model = customModels.find(m => m.id === modelId)
+    if (!model) return
+    
+    // Create a new instance of a previously imported model
+    const newId = importCustomModel(
+      model.url,
+      model.name,
+      customModelDimensions
+    )
+    
+    // Select the newly added model
+    setSelectedId(newId)
+    
+    // Switch to furniture tab to manipulate the newly added model
+    setActiveTab("furniture")
   }
 
   // Handle texture file uploads
@@ -158,25 +240,35 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
   }
 
   const handleTextureRepeatChange = (textureType: "wall" | "floor", axis: "x" | "y", value: number) => {
-    setRoom((prevRoom) => {
-      const updatedTexture = { ...prevRoom[textureType === "wall" ? "wallTexture" : "floorTexture"] }
-      updatedTexture.repeat = {
-        ...updatedTexture.repeat,
-        [axis === "x" ? 0 : 1]: value,
-      }
-
-      return {
-        ...prevRoom,
-        [textureType === "wall" ? "wallTexture" : "floorTexture"]: updatedTexture,
-      }
-    })
+    const updatedRoom = { ...room };
+    const updatedTexture = { ...updatedRoom[textureType === "wall" ? "wallTexture" : "floorTexture"] };
+    
+    updatedTexture.repeat = [
+      axis === "x" ? value : updatedTexture.repeat[0],
+      axis === "y" ? value : updatedTexture.repeat[1],
+    ];
+    
+    updatedRoom[textureType === "wall" ? "wallTexture" : "floorTexture"] = updatedTexture;
+    setRoom(updatedRoom);
   }
 
   const handleLightingChange = (property: string, value: any) => {
-    setRoom((prevRoom) => ({
-      ...prevRoom,
-      [property]: value
-    }));
+    const updatedRoom = { ...room };
+    
+    // Type-safe property access
+    switch (property) {
+      case 'ambientLightIntensity':
+        updatedRoom.ambientLightIntensity = value;
+        break;
+      case 'mainLightColor':
+        updatedRoom.mainLightColor = value;
+        break;
+      case 'timeOfDay':
+        updatedRoom.timeOfDay = value;
+        break;
+    }
+    
+    setRoom(updatedRoom);
   }
   
   const handleMaterialChange = (id: string, material: string) => {
@@ -268,7 +360,7 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
             {/* Selected item controls */}
             {selectedItem && (
               <div className="tab-section">
-                <h3>Selected Item: {selectedItem.type}</h3>
+                <h3>Selected Item: {selectedItem.type === FurnitureType.CUSTOM_MODEL ? (selectedItem.modelName || "Custom Model") : selectedItem.type}</h3>
 
                 {/* Color control */}
                 <div className="control-group">
@@ -282,7 +374,9 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
                 </div>
 
                 {/* Material type selector (for applicable furniture) */}
-                {selectedItem.type !== FurnitureType.PLANT && selectedItem.type !== FurnitureType.RUG && (
+                {selectedItem.type !== FurnitureType.PLANT && 
+                 selectedItem.type !== FurnitureType.RUG && 
+                 selectedItem.type !== FurnitureType.CUSTOM_MODEL && (
                   <div className="control-group">
                     <label>Material</label>
                     <div className="button-row">
@@ -711,6 +805,126 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
           </>
         )
 
+      case "custom":
+        return (
+          <>
+            <div className="tab-section">
+              <h3>Import Custom 3D Model</h3>
+              <p>Upload 3D models in GLB or GLTF format from Blender or other 3D software.</p>
+              
+              <div className="control-group">
+                <label>Model File (GLB/GLTF)</label>
+                <input
+                  type="file"
+                  accept=".glb,.gltf"
+                  onChange={handleModelUpload}
+                  className="file-input"
+                />
+              </div>
+              
+              {customModelPreview && (
+                <div className="model-preview">
+                  <div className="preview-placeholder">
+                    <div className="preview-icon">📦</div>
+                    <p>Model ready to import</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="control-group">
+                <label>Model Name</label>
+                <input
+                  type="text"
+                  value={customModelName}
+                  onChange={(e) => setCustomModelName(e.target.value)}
+                  placeholder="Enter model name"
+                  className="text-input"
+                />
+              </div>
+              
+              <div className="control-group">
+                <label>Model Dimensions (in meters)</label>
+                <div className="dimensions-grid">
+                  <div className="dimension-control">
+                    <label>Width</label>
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="10"
+                      step="0.1"
+                      value={customModelDimensions.width}
+                      onChange={(e) => setCustomModelDimensions({
+                        ...customModelDimensions,
+                        width: Number(e.target.value)
+                      })}
+                      className="text-input"
+                    />
+                  </div>
+                  <div className="dimension-control">
+                    <label>Depth</label>
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="10"
+                      step="0.1"
+                      value={customModelDimensions.depth}
+                      onChange={(e) => setCustomModelDimensions({
+                        ...customModelDimensions,
+                        depth: Number(e.target.value)
+                      })}
+                      className="text-input"
+                    />
+                  </div>
+                  <div className="dimension-control">
+                    <label>Height</label>
+                    <input
+                      type="number"
+                      min="0.1"
+                      max="10"
+                      step="0.1"
+                      value={customModelDimensions.height}
+                      onChange={(e) => setCustomModelDimensions({
+                        ...customModelDimensions,
+                        height: Number(e.target.value)
+                      })}
+                      className="text-input"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <button
+                onClick={handleAddCustomModel}
+                className="primary-button full-width"
+                disabled={!customModelUrl || !customModelName}
+              >
+                Add Custom Model
+              </button>
+              
+              <div className="tab-section">
+                <h3>Your Custom Models</h3>
+                {customModels.length > 0 ? (
+                  <div className="saved-designs-list">
+                    {customModels.map((model) => (
+                      <div key={model.id} className="saved-design-item">
+                        <div className="saved-design-name">{model.name}</div>
+                        <button
+                          onClick={() => handleSelectCustomModel(model.id)}
+                          className="secondary-button"
+                        >
+                          Use Model
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state">No custom models imported yet</div>
+                )}
+              </div>
+            </div>
+          </>
+        )
+
       case "view":
         return (
           <>
@@ -837,6 +1051,12 @@ export default function ControlPanel({ viewMode, onChangeViewMode }: ControlPane
           onClick={() => setActiveTab("room")}
         >
           Room
+        </button>
+        <button
+          className={`tab ${activeTab === "custom" ? "active" : ""}`}
+          onClick={() => setActiveTab("custom")}
+        >
+          Custom
         </button>
         <button
           className={`tab ${activeTab === "view" ? "active" : ""}`}

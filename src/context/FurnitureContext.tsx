@@ -41,6 +41,7 @@ interface FurnitureContextType {
   addWall: (start: { x: number; y: number }, end: { x: number; y: number }) => string
   updateWall: (id: string, start: { x: number; y: number }, end: { x: number; y: number }) => void
   removeWall: (id: string) => void
+  importCustomModel: (modelUrl: string, modelName: string, dimensions?: { width: number, depth: number, height: number }) => string
 }
 
 interface FurnitureProviderProps {
@@ -191,6 +192,23 @@ export function FurnitureProvider({ children }: FurnitureProviderProps) {
     return newItem.id
   }
 
+  // Import custom 3D model
+  const importCustomModel = (modelUrl: string, modelName: string, dimensions?: { width: number, depth: number, height: number }) => {
+    const newItem: FurnitureItem = {
+      id: Date.now().toString(),
+      type: FurnitureType.CUSTOM_MODEL,
+      position: [0, 0, 0],
+      rotation: [0, 0, 0],
+      scale: [1, 1, 1],
+      color: "#CCCCCC", // Default gray color for imported models
+      modelUrl,
+      modelName,
+      customDimensions: dimensions || { width: 1.0, depth: 1.0, height: 1.0 }
+    }
+    setFurniture([...furniture, newItem])
+    return newItem.id
+  }
+
   const removeFurniture = (id: string) => {
     setFurniture((prev) => prev.filter((item) => item.id !== id))
     if (selectedId === id) setSelectedId(null)
@@ -233,31 +251,33 @@ export function FurnitureProvider({ children }: FurnitureProviderProps) {
 
   // Wall management functions for 2D room design
   const addWall = (start: { x: number; y: number }, end: { x: number; y: number }) => {
-    const newWall: Wall = {
+    const newWall = {
       id: Date.now().toString(),
       start,
       end,
     }
-
-    setRoom((prevRoom) => ({
-      ...prevRoom,
-      walls: [...prevRoom.walls, newWall],
+    
+    setRoom((prev) => ({
+      ...prev,
+      walls: [...prev.walls, newWall],
     }))
-
+    
     return newWall.id
   }
 
   const updateWall = (id: string, start: { x: number; y: number }, end: { x: number; y: number }) => {
-    setRoom((prevRoom) => ({
-      ...prevRoom,
-      walls: prevRoom.walls.map((wall) => (wall.id === id ? { ...wall, start, end } : wall)),
+    setRoom((prev) => ({
+      ...prev,
+      walls: prev.walls.map((wall) => 
+        wall.id === id ? { ...wall, start, end } : wall
+      ),
     }))
   }
 
   const removeWall = (id: string) => {
-    setRoom((prevRoom) => ({
-      ...prevRoom,
-      walls: prevRoom.walls.filter((wall) => wall.id !== id),
+    setRoom((prev) => ({
+      ...prev,
+      walls: prev.walls.filter((wall) => wall.id !== id),
     }))
   }
 
@@ -291,6 +311,7 @@ export function FurnitureProvider({ children }: FurnitureProviderProps) {
         addWall,
         updateWall,
         removeWall,
+        importCustomModel, // Added new function
       }}
     >
       {children}
